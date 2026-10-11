@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
-title HDD Master Tool — JahirCyberDesk
+title HDD Master Tool - JahirCyberDesk
 
 :: ================================================================
 ::  HDD-MasterTool.bat
@@ -9,7 +9,7 @@ title HDD Master Tool — JahirCyberDesk
 ::  YouTube: @jahircyberdesk
 :: ================================================================
 
-:: ── Admin Check ─────────────────────────────────────────────────
+:: -- Admin Check -------------------------------------------------
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -20,33 +20,32 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: ── Color Setup ─────────────────────────────────────────────────
+:: -- Color Setup -------------------------------------------------
 color 0B
-
 :MAIN_MENU
 cls
 echo.
 echo  =============================================================
 echo   HDD MASTER TOOL  --  JahirCyberDesk
-echo   Hard Drive Management, Robocopy ^& Safety Guide
+echo   Hard Drive Management ^& Safety Guide
 echo  =============================================================
 echo.
 echo   1.  Drive Overview        (Space ^& Disk Info)
 echo   2.  Health Check          (SMART Status)
 echo   3.  Disk Cleanup          (Free Up Space)
-echo   4.  Defrag / Optimize     (Defrag HDD or TRIM SSD)
-echo   5.  Disk Scan             (CHKDSK)
-echo   6.  Find Largest Files    (Top space consumers)
-echo   7.  Folder Size Analyzer  (Which folder uses most)
-echo   8.  Drive Speed Test      (Read ^& Write speed)
+echo   4.  Drive Optimization    (SSD TRIM / HDD Defrag)
+echo   5.  Partition Manager     (View partitions + GUI)
+echo   6.  File System Check     (CHKDSK)
+echo   7.  Disk Usage Analyzer   (Top 10 files ^& folders)
+echo   8.  Volume Shadow Copies  (VSS snapshots)
 echo.
-echo   9.  ROBOCOPY              (Copy / Mirror / Backup / Move)
-echo  10.  Secure Erase          (Wipe Drive or Free Space)
-echo  11.  Disk Imaging          (Windows System Backup)
-echo  12.  Safety Checklist      (Rules ^& Tool Reference)
-echo  13.  Data Recovery         (SFC / DISM / bootrec / Tools)
-echo  14.  SMART History Log     (Trend tracking to CSV)
-echo  15.  Backup Status Audit   (3-2-1 Check / VSS)
+echo   9.  Disk Cloning ^& Backup (Robocopy / System Image)
+echo  10.  Disk Imaging          (Windows System Backup)
+echo  11.  Secure Erase          (Wipe Drive / Free Space)
+echo  12.  Safety Checklist      (Rules ^& Pre-work Guide)
+echo  13.  Disk Benchmarking     (Read ^& Write Speed Test)
+echo  14.  Advanced Recovery     (TestDisk / PhotoRec / SFC)
+echo  15.  Reports ^& Logs        (Export Drive Report)
 echo  16.  Emergency Triage      (Failing Drive Protocol)
 echo.
 echo   0.  Exit
@@ -61,27 +60,23 @@ if "%CHOICE%"=="1"  goto DRIVE_OVERVIEW
 if "%CHOICE%"=="2"  goto HEALTH_CHECK
 if "%CHOICE%"=="3"  goto DISK_CLEANUP
 if "%CHOICE%"=="4"  goto DEFRAG
-if "%CHOICE%"=="5"  goto CHKDSK
-if "%CHOICE%"=="6"  goto LARGEST_FILES
-if "%CHOICE%"=="7"  goto FOLDER_SIZES
-if "%CHOICE%"=="8"  goto SPEED_TEST
-if "%CHOICE%"=="9"  goto ROBOCOPY
-if "%CHOICE%"=="10" goto SECURE_ERASE
-if "%CHOICE%"=="11" goto DISK_IMAGING
+if "%CHOICE%"=="5"  goto PARTITION_MANAGER
+if "%CHOICE%"=="6"  goto CHKDSK
+if "%CHOICE%"=="7"  goto DISK_USAGE
+if "%CHOICE%"=="8"  goto VOLUME_SHADOW
+if "%CHOICE%"=="9"  goto CLONING_BACKUP
+if "%CHOICE%"=="10" goto DISK_IMAGING
+if "%CHOICE%"=="11" goto SECURE_ERASE
 if "%CHOICE%"=="12" goto SAFETY_CHECK
-if "%CHOICE%"=="13" goto DATA_RECOVERY
-if "%CHOICE%"=="14" goto SMART_LOGGER
-if "%CHOICE%"=="15" goto BACKUP_AUDIT
+if "%CHOICE%"=="13" goto DISK_BENCH
+if "%CHOICE%"=="14" goto ADV_RECOVERY
+if "%CHOICE%"=="15" goto REPORTS_LOGS
 if "%CHOICE%"=="16" goto EMERGENCY_TRIAGE
 if "%CHOICE%"=="0"  goto EXIT_TOOL
 echo  Invalid choice. Try again.
 timeout /t 1 /nobreak >nul
 goto MAIN_MENU
 
-
-:: ================================================================
-::  1. DRIVE OVERVIEW
-:: ================================================================
 :DRIVE_OVERVIEW
 cls
 echo.
@@ -260,15 +255,40 @@ echo  Optimization complete.
 echo.
 goto PAUSE_RETURN
 
+:: ================================================================
+::  5. PARTITION MANAGER
+:: ================================================================
+:PARTITION_MANAGER
+cls
+echo.
+echo  =============================================================
+echo   PARTITION MANAGER -- View ^& Manage Partitions
+echo  =============================================================
+echo.
+echo  [*] Listing all disks and partitions...
+echo.
+powershell -nologo -noprofile -command "Get-Disk -EA SilentlyContinue | Sort-Object Number | ForEach-Object { $d=$_; $hc=switch($d.HealthStatus){'Healthy'{'Green'}'Warning'{'Yellow'}'Unhealthy'{'Red'}default{'Gray'}}; Write-Host ('  Disk {0}: {1}  [{2}]  Bus: {3}  Health: {4}' -f $d.Number,$d.FriendlyName,([math]::Round($d.Size/1GB,1).ToString()+'GB'),$d.BusType,$d.HealthStatus) -F White; $parts=Get-Partition -DiskNumber $d.Number -EA SilentlyContinue; if($parts){Write-Host ('    {0,-6} {1,-10} {2,-14} {3}' -f 'PART#','LETTER','TYPE','SIZE') -F Yellow; foreach($p in $parts){$l=if($p.DriveLetter){''+$p.DriveLetter+':'}else{'(no letter)'}; Write-Host ('    {0,-6} {1,-10} {2,-14} {3}' -f $p.PartitionNumber,$l,$p.Type,[math]::Round($p.Size/1GB,2).ToString()+'GB') -F Gray}}; Write-Host '' }"
+echo.
+echo  -- Actions ------------------------------------------------
+echo   1.  Open Disk Management GUI  (diskmgmt.msc)
+echo   0.  Back to Main Menu
+echo.
+set /p PMOPT=  Choose (0 or 1):
+if "%PMOPT%"=="1" (
+    echo  Opening Disk Management...
+    start diskmgmt.msc
+)
+echo.
+goto PAUSE_RETURN
 
 :: ================================================================
-::  5. CHKDSK
+::  6. FILE SYSTEM CHECK (CHKDSK)
 :: ================================================================
 :CHKDSK
 cls
 echo.
 echo  =============================================================
-echo   DISK SCAN -- CHKDSK
+echo   FILE SYSTEM CHECK -- CHKDSK
 echo  =============================================================
 echo.
 echo  Options:
@@ -312,173 +332,300 @@ if "%CHKOPT%"=="1" (
 echo.
 goto PAUSE_RETURN
 
-
 :: ================================================================
-::  6. FIND LARGEST FILES
+::  7. DISK USAGE ANALYZER
 :: ================================================================
-:LARGEST_FILES
+:DISK_USAGE
 cls
 echo.
 echo  =============================================================
-echo   FIND LARGEST FILES -- Top Space Consumers
+echo   DISK USAGE ANALYZER -- Top 10 Files ^& Folders
 echo  =============================================================
 echo.
-echo   (Enter 0 to return to Main Menu)
-set /p LDRV=  Enter drive letter to scan (e.g. C):
-set LDRV=%LDRV::=%
-if "%LDRV%"=="0" goto MAIN_MENU
-
-set /p LTOP=  How many top files to show? (default 20):
-if "%LTOP%"=="" set LTOP=20
+echo  (Enter 0 to return to Main Menu)
+echo.
+set /p DUDRV=  Enter drive letter to scan (e.g. C):
+set DUDRV=%DUDRV::=%
+if "%DUDRV%"=="0" goto MAIN_MENU
 
 echo.
-echo  Scanning %LDRV%:\ for the %LTOP% largest files...
-echo  (This may take 1-3 minutes on large drives. Please wait...)
+echo  Scanning %DUDRV%:\  -- this may take 1-3 minutes...
 echo.
 
-powershell -nologo -noprofile -command ^
-"$files = Get-ChildItem -Path '%LDRV%:\' -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First %LTOP%; Write-Host ('  {0,-12} {1}' -f 'SIZE','FILE PATH') -ForegroundColor Yellow; Write-Host ('  ' + '-'*68) -ForegroundColor DarkGray; foreach ($f in $files) { $sz = if ($f.Length -ge 1GB) { '{0:N1} GB ' -f ($f.Length/1GB) } elseif ($f.Length -ge 1MB) { '{0:N1} MB ' -f ($f.Length/1MB) } else { '{0:N0} KB ' -f ($f.Length/1KB) }; $p = $f.FullName; if ($p.Length -gt 60) { $p = '...'+$p.Substring($p.Length-57) }; Write-Host ('  {0,-12} {1}' -f $sz,$p) }"
+echo  -- TOP 10 LARGEST FILES ------------------------------------
+echo.
+powershell -nologo -noprofile -command "$drv='%DUDRV%'; $f=Get-ChildItem -Path ($drv+':\') -Recurse -File -Force -EA SilentlyContinue|Sort-Object Length -Descending|Select-Object -First 10; Write-Host ('  {0,-12} {1}' -f 'SIZE','FILE PATH') -F Yellow; Write-Host ('  '+'-'*68) -F DarkGray; foreach($x in $f){$sz=if($x.Length -ge 1GB){'{0:N1} GB'-f($x.Length/1GB)}elseif($x.Length -ge 1MB){'{0:N1} MB'-f($x.Length/1MB)}else{'{0:N0} KB'-f($x.Length/1KB)}; $p=$x.FullName; if($p.Length -gt 60){$p='...'+$p.Substring($p.Length-57)}; Write-Host ('  {0,-12} {1}' -f $sz,$p) -F White}"
+
+echo.
+echo  -- TOP 10 LARGEST FOLDERS (top-level) ---------------------
+echo.
+powershell -nologo -noprofile -command "$drv='%DUDRV%'; $folders=Get-ChildItem -Path ($drv+':\') -Directory -Force -EA SilentlyContinue; $r=foreach($d in $folders){$sz=(Get-ChildItem -Path $d.FullName -Recurse -File -Force -EA SilentlyContinue|Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Name=$d.Name;Bytes=if($null -eq $sz){0}else{[long]$sz};Str=if($null -eq $sz){'0 B'}elseif($sz -ge 1GB){'{0:N2} GB'-f($sz/1GB)}elseif($sz -ge 1MB){'{0:N2} MB'-f($sz/1MB)}else{'{0:N2} KB'-f($sz/1KB)}}}; $top=$r|Sort-Object Bytes -Descending|Select-Object -First 10; Write-Host ('  {0,-14} {1}' -f 'SIZE','FOLDER') -F Yellow; Write-Host ('  '+'-'*52) -F DarkGray; foreach($x in $top){Write-Host ('  {0,-14} {1}' -f $x.Str,$x.Name) -F White}"
 
 echo.
 goto PAUSE_RETURN
 
 
 :: ================================================================
-::  7. FOLDER SIZE ANALYZER
+::  8. VOLUME SHADOW COPIES (VSS)
 :: ================================================================
-:FOLDER_SIZES
+:VOLUME_SHADOW
 cls
 echo.
 echo  =============================================================
-echo   FOLDER SIZE ANALYZER
+echo   VOLUME SHADOW COPIES (VSS) -- Snapshot Manager
 echo  =============================================================
 echo.
-echo  [1] TreeSize Free   (Visual tree -- recommended)
-echo  [2] WinDirStat      (Colour disk map -- open source)
-echo  [3] PowerShell Quick Scan (text output)
-echo  [0] Back to Main Menu
+echo   1.  List all shadow copies
+echo   2.  Create a new shadow copy (specify drive)
+echo   3.  Delete a shadow copy (by ID)
+echo   0.  Back to Main Menu
 echo.
-set /p FSC=  Enter your choice (0-3):
-if "%FSC%"=="1" goto FS_TREESIZE
-if "%FSC%"=="2" goto FS_WINDIRSTAT
-if "%FSC%"=="3" goto FS_BUILTIN
-if "%FSC%"=="0" goto MAIN_MENU
-goto FOLDER_SIZES
+set /p VSSOPT=  Choose (0-3):
+if "%VSSOPT%"=="0" goto MAIN_MENU
+if "%VSSOPT%"=="1" goto VSS_LIST
+if "%VSSOPT%"=="2" goto VSS_CREATE
+if "%VSSOPT%"=="3" goto VSS_DELETE
+echo  Invalid option.
+goto VOLUME_SHADOW
 
-
-:FS_TREESIZE
+:VSS_LIST
 cls
 echo.
-echo  =============================================================
-echo   TREESIZE FREE -- Folder Size Visualizer
-echo  =============================================================
+echo  -- Shadow Copies on this system ------------------------------
 echo.
-if exist "%ProgramFiles%\JAM Software\TreeSize Free\TreeSizeFree.exe" (
-    echo  [OK] TreeSize Free found. Launching...
-    start "" "%ProgramFiles%\JAM Software\TreeSize Free\TreeSizeFree.exe"
-    goto FOLDER_SIZES
-)
-if exist "%ProgramFiles(x86)%\JAM Software\TreeSize Free\TreeSizeFree.exe" (
-    echo  [OK] TreeSize Free found. Launching...
-    start "" "%ProgramFiles(x86)%\JAM Software\TreeSize Free\TreeSizeFree.exe"
-    goto FOLDER_SIZES
-)
-if exist "C:\HDD-MasterTool-Tools\TreeSizeFree\TreeSizeFree.exe" (
-    echo  [OK] TreeSize Free found. Launching...
-    start "" "C:\HDD-MasterTool-Tools\TreeSizeFree\TreeSizeFree.exe"
-    goto FOLDER_SIZES
-)
-echo  [!] TreeSize Free is not installed.
-echo.
-set /p TS_DL=  Download TreeSize Free portable now? (Y/N):
-if /i "%TS_DL%"=="Y" (
-    echo  [*] Downloading and extracting TreeSize Free portable...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; $baseDir='C:\HDD-MasterTool-Tools'; $destDir=\"$baseDir\TreeSizeFree\"; $zip=\"$baseDir\TreeSizeFree-Portable.zip\"; try { Invoke-WebRequest -Uri 'https://downloads.jam-software.de/treesize_free/TreeSizeFree-Portable.zip' -OutFile $zip -UseBasicParsing; Write-Host '  [*] Extracting...' -ForegroundColor Cyan; Expand-Archive -Path $zip -DestinationPath $destDir -Force; $exe = Get-ChildItem -Path $destDir -Recurse -Filter 'TreeSizeFree.exe' | Select-Object -First 1; if ($exe) { Write-Host ('  [OK] Ready: ' + $exe.FullName) -ForegroundColor Green; Start-Process $exe.FullName } else { Write-Host '  [!] TreeSizeFree.exe not found in archive.' -ForegroundColor Red }; Remove-Item $zip -Force -ErrorAction SilentlyContinue } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://www.jam-software.com/treesize_free' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://www.jam-software.com/treesize_free
-)
-echo.
-pause
-goto FOLDER_SIZES
-
-
-:FS_WINDIRSTAT
-cls
-echo.
-echo  =============================================================
-echo   WINDIRSTAT -- Disk Usage Colour Map
-echo  =============================================================
-echo.
-if exist "%ProgramFiles%\WinDirStat\windirstat.exe" (
-    echo  [OK] WinDirStat found. Launching...
-    start "" "%ProgramFiles%\WinDirStat\windirstat.exe"
-    goto FOLDER_SIZES
-)
-if exist "%ProgramFiles(x86)%\WinDirStat\windirstat.exe" (
-    echo  [OK] WinDirStat found. Launching...
-    start "" "%ProgramFiles(x86)%\WinDirStat\windirstat.exe"
-    goto FOLDER_SIZES
-)
-echo  [!] WinDirStat is not installed.
-echo.
-set /p WDS_DL=  Download WinDirStat installer now? (Y/N):
-if /i "%WDS_DL%"=="Y" (
-    echo  [*] Downloading WinDirStat...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; try { Invoke-WebRequest -Uri 'https://windirstat.net/wds_current_setup.exe' -OutFile 'C:\HDD-MasterTool-Tools\windirstat_setup.exe' -UseBasicParsing; Write-Host '  [OK] Saved to C:\HDD-MasterTool-Tools\windirstat_setup.exe' -ForegroundColor Green; Start-Process 'C:\HDD-MasterTool-Tools\windirstat_setup.exe' } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://windirstat.net' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://windirstat.net
-)
-echo.
-pause
-goto FOLDER_SIZES
-
-
-:FS_BUILTIN
-cls
-echo.
-echo  =============================================================
-echo   POWERSHELL FOLDER SCANNER -- Quick Text Output
-echo  =============================================================
-echo.
-set /p FPATH=  Enter folder path (e.g. C:\Users or D:\):
-echo.
-echo  Calculating folder sizes in: %FPATH%
-echo  (Please wait...)
-echo.
-powershell -nologo -noprofile -command ^
-"$path = '%FPATH%'; if (-not (Test-Path $path)) { Write-Host '  [!] Path not found!' -ForegroundColor Red; exit }; $folders = Get-ChildItem -Path $path -Directory -Force -ErrorAction SilentlyContinue; $r = foreach ($f in $folders) { $sz = (Get-ChildItem -Path $f.FullName -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Name=$f.Name;Bytes=if($null -eq $sz){0}else{$sz};Disp=if($sz -ge 1GB){'{0:N2} GB'-f($sz/1GB)}elseif($sz -ge 1MB){'{0:N2} MB'-f($sz/1MB)}elseif($sz -ge 1KB){'{0:N2} KB'-f($sz/1KB)}else{'0 B'}} }; $r = $r | Sort-Object Bytes -Descending; Write-Host ('  {0,-42} {1,12}' -f 'FOLDER NAME','SIZE') -ForegroundColor Yellow; Write-Host ('  '+'-'*56) -ForegroundColor DarkGray; foreach ($x in $r) { $n = if($x.Name.Length -gt 40){$x.Name.Substring(0,37)+'...'}else{$x.Name}; Write-Host ('  {0,-42} {1,12}' -f $n,$x.Disp) }"
-echo.
-pause
-goto FOLDER_SIZES
-
-
-:: ================================================================
-::  8. DRIVE SPEED TEST
-:: ================================================================
-:SPEED_TEST
-cls
-echo.
-echo  =============================================================
-echo   DRIVE SPEED TEST -- Read ^& Write Speed
-echo  =============================================================
-echo.
-echo   (Enter 0 to return to Main Menu)
-set /p SPDRV=  Enter drive letter to test (e.g. C):
-set SPDRV=%SPDRV::=%
-if "%SPDRV%"=="0" goto MAIN_MENU
-
-echo.
-echo  Running speed test on %SPDRV%: (256 MB test file)...
-echo.
-
-powershell -nologo -noprofile -command ^
-"$drv = '%SPDRV%'; $testFile = $drv+':\__speedtest__.dat'; $sz = 256; $buf = New-Object byte[](1MB); (New-Object Random).NextBytes($buf); Write-Host '  WRITE TEST...' -ForegroundColor Yellow; $sw=[System.Diagnostics.Stopwatch]::StartNew(); try { $fs=[System.IO.File]::OpenWrite($testFile); for($i=0;$i -lt $sz;$i++){$fs.Write($buf,0,$buf.Length)}; $fs.Flush();$fs.Close();$sw.Stop(); $ws=[math]::Round($sz/$sw.Elapsed.TotalSeconds,1); Write-Host ('  Write Speed : {0} MB/s' -f $ws) -ForegroundColor Green } catch { Write-Host '  Write test failed.' -ForegroundColor Red; if(Test-Path $testFile){Remove-Item $testFile -Force}; exit }; Write-Host ''; Write-Host '  READ TEST...' -ForegroundColor Yellow; $rb=New-Object byte[](1MB); $sw=[System.Diagnostics.Stopwatch]::StartNew(); try { $fs=[System.IO.File]::OpenRead($testFile); while($fs.Read($rb,0,$rb.Length) -gt 0){}; $fs.Close();$sw.Stop(); $rs=[math]::Round($sz/$sw.Elapsed.TotalSeconds,1); Write-Host ('  Read Speed  : {0} MB/s' -f $rs) -ForegroundColor Green } catch { Write-Host '  Read test failed.' -ForegroundColor Red }; if(Test-Path $testFile){Remove-Item $testFile -Force}; Write-Host ''; Write-Host '  =============================================' -ForegroundColor Cyan; Write-Host ('   Write: {0} MB/s  |  Read: {1} MB/s' -f $ws,$rs) -ForegroundColor White; $rating = if($rs -gt 1000){'NVMe SSD - Excellent'}elseif($rs -gt 400){'SATA SSD - Very Good'}elseif($rs -gt 100){'HDD 7200rpm - Average'}else{'Slow - HDD 5400rpm or aging'}; Write-Host ('   Rating: {0}' -f $rating) -ForegroundColor Cyan; Write-Host '  =============================================' -ForegroundColor Cyan"
-
+vssadmin list shadows
 echo.
 goto PAUSE_RETURN
 
+:VSS_CREATE
+echo.
+echo  (Enter 0 to cancel)
+set /p VSSDRV=  Enter drive letter to snapshot (e.g. C):
+set VSSDRV=%VSSDRV::=%
+if "%VSSDRV%"=="0" goto PAUSE_RETURN
+echo.
+echo  Creating shadow copy of %VSSDRV%: ...
+vssadmin create shadow /for=%VSSDRV%:
+echo.
+goto PAUSE_RETURN
+
+:VSS_DELETE
+cls
+echo.
+echo  Current shadow copies:
+echo.
+vssadmin list shadows
+echo.
+echo  WARNING: Deletion is permanent and cannot be undone.
+echo.
+set /p VSSID=  Enter Shadow Copy ID (e.g. {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}):
+if "%VSSID%"=="" goto PAUSE_RETURN
+set /p VSSCONF=  Confirm delete ID %VSSID% ? (Y/N):
+if /i not "%VSSCONF%"=="Y" (
+    echo  Cancelled.
+    goto PAUSE_RETURN
+)
+vssadmin delete shadows /shadow="%VSSID%" /quiet
+echo.
+echo  Delete command executed.
+goto PAUSE_RETURN
+
+:PAUSE_RETURN
+echo.
+echo  -------------------------------------------------------------
+pause
+goto MAIN_MENU
+:: ================================================================
+::  11. SECURE ERASE
+:: ================================================================
+:SECURE_ERASE
+cls
+echo.
+echo  =============================================================
+echo   SECURE ERASE -- Wipe Drive or Free Space
+echo  =============================================================
+echo.
+echo  WARNING: Read carefully before proceeding!
+echo  -------------------------------------------------------------
+echo   - Secure erase is IRREVERSIBLE. All data will be gone.
+echo   - Always verify you selected the CORRECT drive letter.
+echo   - Never wipe C: (system drive) while Windows is running.
+echo   - Verify backups exist BEFORE proceeding.
+echo  -------------------------------------------------------------
+echo.
+echo   Options:
+echo   1.  Wipe FREE SPACE only  (cipher /w -- SAFE, no data loss)
+echo       Overwrites deleted file remnants. Existing files safe.
+echo.
+echo   2.  Full 3-Pass Drive Wipe (format /p:3 -- DESTROYS ALL DATA)
+echo.
+echo   3.  Single-Pass Zero Fill  (format /p:1 -- DESTROYS ALL DATA)
+echo.
+echo   0.  Back to Main Menu
+echo.
+set /p SEOPT=  Choose option (0/1/2/3):
+
+if "%SEOPT%"=="0" goto MAIN_MENU
+if "%SEOPT%"=="1" goto SE_FREESPACE
+if "%SEOPT%"=="2" goto SE_FULLWIPE
+if "%SEOPT%"=="3" goto SE_FULLWIPE
+echo  Invalid choice.
+goto PAUSE_RETURN
+
+:SE_FREESPACE
+echo.
+set /p SEDRV=  Enter drive letter to wipe free space (e.g. D):
+set SEDRV=%SEDRV::=%
+echo.
+echo  Wiping free space on %SEDRV%: using cipher /w ...
+echo  (This may take several minutes)
+echo.
+cipher /w:%SEDRV%:\
+echo.
+echo  Free space wipe complete on %SEDRV%:
+goto PAUSE_RETURN
+
+:SE_FULLWIPE
+echo.
+echo  Available drives:
+powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
+echo.
+set /p SEDRV2=  Enter drive letter to WIPE (e.g. D):
+set SEDRV2=%SEDRV2::=%
+if /i "%SEDRV2%"=="C" (
+    echo  ERROR: Cannot wipe C: system drive while Windows is running.
+    goto PAUSE_RETURN
+)
+echo.
+echo  ============================================================
+echo  FINAL WARNING: Drive %SEDRV2%: will be COMPLETELY WIPED!
+echo  ALL DATA WILL BE PERMANENTLY DESTROYED!
+echo  ============================================================
+echo.
+set /p SECONF=  Type WIPE to confirm, or anything else to cancel:
+if /i not "%SECONF%"=="WIPE" (
+    echo  Cancelled. No changes made.
+    goto PAUSE_RETURN
+)
+echo.
+if "%SEOPT%"=="2" (
+    echo  Running 3-pass wipe on %SEDRV2%: ...
+    echo Y | format %SEDRV2%: /fs:NTFS /p:3 /q
+) else (
+    echo  Running 1-pass wipe on %SEDRV2%: ...
+    echo Y | format %SEDRV2%: /fs:NTFS /p:1 /q
+)
+echo.
+echo  Wipe operation complete on %SEDRV2%:
+goto PAUSE_RETURN
+:: ================================================================
+::  10. DISK IMAGING
+:: ================================================================
+:DISK_IMAGING
+cls
+echo.
+echo  =============================================================
+echo   DISK IMAGING -- Windows System Backup
+echo  =============================================================
+echo.
+echo   Options:
+echo   1.  Create System Image (wbadmin -- full C: backup)
+echo   2.  Open Windows Backup GUI
+echo   3.  Open Recovery Drive Creator (bootable USB)
+echo   4.  View Backup Status
+echo   5.  List all disk volumes
+echo   0.  Back to Main Menu
+echo.
+echo   NOTE: For failing/damaged drives, use Macrium Reflect
+echo   or Clonezilla for reliable sector-level imaging.
+echo.
+set /p DIOPT=  Choose option (0-5):
+
+if "%DIOPT%"=="0" goto MAIN_MENU
+if "%DIOPT%"=="1" goto DI_SYSIMAGE
+if "%DIOPT%"=="2" goto DI_WINGUI
+if "%DIOPT%"=="3" goto DI_RECOVERY
+if "%DIOPT%"=="4" goto DI_STATUS
+if "%DIOPT%"=="5" goto DI_VOLUMES
+echo  Invalid choice.
+goto PAUSE_RETURN
+
+:DI_SYSIMAGE
+echo.
+echo  Available drives for backup target (not C:):
+powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed' -and $_.DriveLetter -ne 'C'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
+echo.
+set /p DITGT=  Enter DESTINATION drive letter (e.g. D):
+set DITGT=%DITGT::=%
+echo.
+echo  Source  : C: (System Drive)
+echo  Target  : %DITGT%:
+echo.
+set /p DIGO=  Start system image backup? (Y/N):
+if /i not "%DIGO%"=="Y" goto PAUSE_RETURN
+echo.
+echo  Running wbadmin backup -- this may take 15-60 minutes...
+wbadmin start backup -backupTarget:%DITGT%: -include:C: -allCritical -quiet
+echo.
+echo  Backup job completed. Check output above for result.
+goto PAUSE_RETURN
+
+:DI_WINGUI
+echo  Opening Windows Backup...
+start control /name Microsoft.BackupAndRestore
+goto PAUSE_RETURN
+
+:DI_RECOVERY
+echo  Opening Recovery Drive Creator...
+start recoverydrive.exe
+goto PAUSE_RETURN
+
+:DI_STATUS
+echo.
+echo  -- Backup Status ----------------------------------------
+wbadmin get status 2>nul
+goto PAUSE_RETURN
+
+:DI_VOLUMES
+echo.
+echo  -- All Disk Volumes -------------------------------------
+powershell -nologo -noprofile -command "Get-PhysicalDisk -EA SilentlyContinue | Format-Table FriendlyName,@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}},BusType,HealthStatus -AutoSize"
+echo.
+powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},FileSystem,@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
+goto PAUSE_RETURN
+
+:: ================================================================
+::  9. DISK CLONING & BACKUP
+:: ================================================================
+:CLONING_BACKUP
+cls
+echo.
+echo  =============================================================
+echo   DISK CLONING ^& BACKUP
+echo  =============================================================
+echo.
+echo   1.  Robocopy Mirror   -- Mirror a folder to another location
+echo       (Smart copy with logging, filters, and mode selection)
+echo.
+echo   2.  System Image      -- Full Windows System Backup (wbadmin)
+echo       (Backs up the entire C: drive to an external drive)
+echo.
+echo   3.  Backup Wizard     -- Open Windows Backup ^& Restore GUI
+echo       (Control Panel backup, schedule, and file history)
+echo.
+echo   0.  Back to Main Menu
+echo.
+set /p CLOPT=  Choose (0-3):
+if "%CLOPT%"=="1" goto ROBOCOPY
+if "%CLOPT%"=="2" goto DISK_IMAGING
+if "%CLOPT%"=="3" (
+    echo  Opening Windows Backup ^& Restore...
+    start control /name Microsoft.BackupAndRestore
+    goto PAUSE_RETURN
+)
+if "%CLOPT%"=="0" goto MAIN_MENU
+echo  Invalid option.
+goto PAUSE_RETURN
 
 :: ================================================================
 ::  9. ROBOCOPY
@@ -491,7 +638,7 @@ echo   ROBOCOPY -- Smart File ^& Folder Copy
 echo  =============================================================
 echo.
 
-:: ── STEP 1: SOURCE ──
+:: -- STEP 1: SOURCE --
 echo  -- STEP 1: SOURCE -------------------------------------------
 echo  Paste or type the SOURCE path:
 echo  (Example: C:\Users\jahir\Documents  or  \\server\share\folder)
@@ -504,7 +651,7 @@ set SOURCE=%SOURCE:"=%
 if "%SOURCE%"=="0" goto MAIN_MENU
 
 echo.
-:: ── STEP 2: DESTINATION ──
+:: -- STEP 2: DESTINATION --
 echo  -- STEP 2: DESTINATION --------------------------------------
 echo  Paste or type the DESTINATION path:
 echo  (Example: D:\Backup\Documents  or  \\nas\backup\docs)
@@ -523,7 +670,7 @@ if not exist "%SOURCE%" (
     goto PAUSE_RETURN
 )
 
-:: ── STEP 3: COPY MODE ──
+:: -- STEP 3: COPY MODE --
 echo  -- STEP 3: COPY MODE ----------------------------------------
 echo.
 echo   1.  COPY      -- Copy new and updated files only (SAFE)
@@ -537,7 +684,7 @@ set /p RMODE=  Choose mode (1-6):
 
 echo.
 
-:: ── STEP 4: FILE FILTER ──
+:: -- STEP 4: FILE FILTER --
 echo  -- STEP 4: FILE FILTER --------------------------------------
 echo  Leave blank = copy ALL files
 echo  Examples: *.pdf   *.docx   *.xlsx   *.log
@@ -548,7 +695,7 @@ if "%RFILTER%"=="" set RFILTER=*.*
 
 echo.
 
-:: ── STEP 5: EXCLUDE ──
+:: -- STEP 5: EXCLUDE --
 echo  -- STEP 5: EXCLUDE (optional, press Enter to skip) ----------
 set XDIRS=
 set XFILES=
@@ -557,7 +704,7 @@ set /p XFILES=  Exclude file types (e.g. *.tmp *.bak):
 
 echo.
 
-:: ── STEP 6: LOG ──
+:: -- STEP 6: LOG --
 echo  -- STEP 6: SAVE LOG -----------------------------------------
 set /p SAVELOG=  Save copy log to Desktop? (Y/N):
 set LOGARG=
@@ -662,180 +809,6 @@ if /i "%SAVELOG%"=="Y" (
 echo  =============================================================
 echo.
 goto PAUSE_RETURN
-
-
-:: ================================================================
-::  HELPERS
-:: ================================================================
-:PAUSE_RETURN
-echo.
-echo  -------------------------------------------------------------
-pause
-goto MAIN_MENU
-
-
-:: ================================================================
-::  10. SECURE ERASE / SANITIZE
-:: ================================================================
-:SECURE_ERASE
-cls
-echo.
-echo  =============================================================
-echo   SECURE ERASE -- Wipe Drive or Free Space
-echo  =============================================================
-echo.
-echo  WARNING: Read carefully before proceeding!
-echo  -------------------------------------------------------------
-echo   - Secure erase is IRREVERSIBLE. All data will be gone.
-echo   - Always verify you selected the CORRECT drive letter.
-echo   - Never wipe C: (system drive) while Windows is running.
-echo   - Verify backups exist BEFORE proceeding.
-echo  -------------------------------------------------------------
-echo.
-echo   Options:
-echo   1.  Wipe FREE SPACE only  (cipher /w -- SAFE, no data loss)
-echo       Overwrites deleted file remnants. Existing files safe.
-echo.
-echo   2.  Full 3-Pass Drive Wipe (format /p:3 -- DESTROYS ALL DATA)
-echo.
-echo   3.  Single-Pass Zero Fill  (format /p:1 -- DESTROYS ALL DATA)
-echo.
-echo   0.  Back to Main Menu
-echo.
-set /p SEOPT=  Choose option (0/1/2/3):
-
-if "%SEOPT%"=="0" goto MAIN_MENU
-if "%SEOPT%"=="1" goto SE_FREESPACE
-if "%SEOPT%"=="2" goto SE_FULLWIPE
-if "%SEOPT%"=="3" goto SE_FULLWIPE
-echo  Invalid choice.
-goto PAUSE_RETURN
-
-:SE_FREESPACE
-echo.
-set /p SEDRV=  Enter drive letter to wipe free space (e.g. D):
-set SEDRV=%SEDRV::=%
-echo.
-echo  Wiping free space on %SEDRV%: using cipher /w ...
-echo  (This may take several minutes)
-echo.
-cipher /w:%SEDRV%:\
-echo.
-echo  Free space wipe complete on %SEDRV%:
-goto PAUSE_RETURN
-
-:SE_FULLWIPE
-echo.
-echo  Available drives:
-powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
-echo.
-set /p SEDRV2=  Enter drive letter to WIPE (e.g. D):
-set SEDRV2=%SEDRV2::=%
-if /i "%SEDRV2%"=="C" (
-    echo  ERROR: Cannot wipe C: system drive while Windows is running.
-    goto PAUSE_RETURN
-)
-echo.
-echo  ============================================================
-echo  FINAL WARNING: Drive %SEDRV2%: will be COMPLETELY WIPED!
-echo  ALL DATA WILL BE PERMANENTLY DESTROYED!
-echo  ============================================================
-echo.
-set /p SECONF=  Type WIPE to confirm, or anything else to cancel:
-if /i not "%SECONF%"=="WIPE" (
-    echo  Cancelled. No changes made.
-    goto PAUSE_RETURN
-)
-echo.
-if "%SEOPT%"=="2" (
-    echo  Running 3-pass wipe on %SEDRV2%: ...
-    echo Y | format %SEDRV2%: /fs:NTFS /p:3 /q
-) else (
-    echo  Running 1-pass wipe on %SEDRV2%: ...
-    echo Y | format %SEDRV2%: /fs:NTFS /p:1 /q
-)
-echo.
-echo  Wipe operation complete on %SEDRV2%:
-goto PAUSE_RETURN
-
-
-:: ================================================================
-::  11. DISK IMAGING / CLONE
-:: ================================================================
-:DISK_IMAGING
-cls
-echo.
-echo  =============================================================
-echo   DISK IMAGING -- Windows System Backup
-echo  =============================================================
-echo.
-echo   Options:
-echo   1.  Create System Image (wbadmin -- full C: backup)
-echo   2.  Open Windows Backup GUI
-echo   3.  Open Recovery Drive Creator (bootable USB)
-echo   4.  View Backup Status
-echo   5.  List all disk volumes
-echo   0.  Back to Main Menu
-echo.
-echo   NOTE: For failing/damaged drives, use Macrium Reflect
-echo   or Clonezilla for reliable sector-level imaging.
-echo.
-set /p DIOPT=  Choose option (0-5):
-
-if "%DIOPT%"=="0" goto MAIN_MENU
-if "%DIOPT%"=="1" goto DI_SYSIMAGE
-if "%DIOPT%"=="2" goto DI_WINGUI
-if "%DIOPT%"=="3" goto DI_RECOVERY
-if "%DIOPT%"=="4" goto DI_STATUS
-if "%DIOPT%"=="5" goto DI_VOLUMES
-echo  Invalid choice.
-goto PAUSE_RETURN
-
-:DI_SYSIMAGE
-echo.
-echo  Available drives for backup target (not C:):
-powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed' -and $_.DriveLetter -ne 'C'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
-echo.
-set /p DITGT=  Enter DESTINATION drive letter (e.g. D):
-set DITGT=%DITGT::=%
-echo.
-echo  Source  : C: (System Drive)
-echo  Target  : %DITGT%:
-echo.
-set /p DIGO=  Start system image backup? (Y/N):
-if /i not "%DIGO%"=="Y" goto PAUSE_RETURN
-echo.
-echo  Running wbadmin backup -- this may take 15-60 minutes...
-wbadmin start backup -backupTarget:%DITGT%: -include:C: -allCritical -quiet
-echo.
-echo  Backup job completed. Check output above for result.
-goto PAUSE_RETURN
-
-:DI_WINGUI
-echo  Opening Windows Backup...
-start control /name Microsoft.BackupAndRestore
-goto PAUSE_RETURN
-
-:DI_RECOVERY
-echo  Opening Recovery Drive Creator...
-start recoverydrive.exe
-goto PAUSE_RETURN
-
-:DI_STATUS
-echo.
-echo  -- Backup Status ----------------------------------------
-wbadmin get status 2>nul
-goto PAUSE_RETURN
-
-:DI_VOLUMES
-echo.
-echo  -- All Disk Volumes -------------------------------------
-powershell -nologo -noprofile -command "Get-PhysicalDisk -EA SilentlyContinue | Format-Table FriendlyName,@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}},BusType,HealthStatus -AutoSize"
-echo.
-powershell -nologo -noprofile -command "Get-Volume | Where-Object {$_.DriveLetter -and $_.DriveType -eq 'Fixed'} | Format-Table @{N='DeviceID';E={$_.DriveLetter+':'}},@{N='VolumeName';E={$_.FileSystemLabel}},FileSystem,@{N='Size_GB';E={[math]::Round($_.Size/1GB,1)}} -AutoSize"
-goto PAUSE_RETURN
-
-
 :: ================================================================
 ::  12. SAFETY CHECKLIST
 :: ================================================================
@@ -878,7 +851,7 @@ echo  =============================================================
 echo.
 echo   Step 1.  SMART read         -- Use Option 2 (Health Check)
 echo   Step 2.  If HEALTHY         -- Benchmark / scan / repair
-echo   Step 3.  If DEGRADED        -- Image immediately (Option 11)
+echo   Step 3.  If DEGRADED        -- Image immediately (Option 10)
 echo   Step 4.  Recover from image -- Use DMDE / TestDisk / Recuva
 echo   Step 5.  Only then consider -- Repair / remap / replace drive
 echo.
@@ -898,54 +871,137 @@ echo   Clonezilla        -- Disk cloning and imaging (free)
 echo.
 goto PAUSE_RETURN
 
-
 :: ================================================================
-::  13. DATA RECOVERY TOOLS
+::  13. DISK BENCHMARKING
 :: ================================================================
-:DATA_RECOVERY
+:DISK_BENCH
 cls
 echo.
 echo  =============================================================
-echo   DATA RECOVERY TOOLS
+echo   DISK BENCHMARKING -- Read ^& Write Speed Test
 echo  =============================================================
 echo.
-echo  -- BUILT-IN WINDOWS RECOVERY --
+echo  Measures sequential read ^& write speed using a 512 MB file.
+echo  Temp file is deleted automatically after the test.
 echo.
-echo   1.  SFC           -- System File Checker (Repair system files)
-echo   2.  DISM          -- Repair Windows Image (CheckHealth + RestoreHealth)
-echo   3.  CHKDSK        -- Scan and Fix Drive Errors (specify drive)
-echo   4.  Fix Boot      -- bootrec (MBR / Boot Sector / BCD)
-echo   5.  Shadow Copy   -- List Previous Versions (vssadmin)
+echo  Expected ranges:
+echo   NVMe SSD   :  1500 - 7000+ MB/s
+echo   SATA SSD   :   300 -  550 MB/s
+echo   HDD 7200rpm:    80 -  150 MB/s
+echo   HDD 5400rpm:    50 -  100 MB/s
 echo.
-echo  -- THIRD-PARTY RECOVERY TOOLS --
+echo  (Enter 0 to return to Main Menu)
 echo.
-echo   6.  Recuva        -- Free file recovery (Piriform)
-echo   7.  TestDisk      -- Partition and boot repair
-echo   8.  PhotoRec      -- Photo and file recovery
-echo   9.  MiniTool      -- Free data recovery software
+set /p BDRV=  Enter drive letter to benchmark (e.g. C):
+set BDRV=%BDRV::=%
+if "%BDRV%"=="0" goto MAIN_MENU
+
+echo.
+echo  Benchmarking %BDRV%: with 512 MB file...
+echo.
+
+powershell -nologo -noprofile -command ^
+"$drv='%BDRV%'; $testFile=$drv+':\__hdd_bench_temp__.dat'; $testSizeMB=512; $buffer=New-Object byte[](1MB); (New-Object Random).NextBytes($buffer); Write-Host '  WRITE TEST (sequential)...' -F Yellow; $writeSpeed=0; $sw=[System.Diagnostics.Stopwatch]::StartNew(); try{$fs=[System.IO.File]::OpenWrite($testFile); for($i=0;$i -lt $testSizeMB;$i++){$fs.Write($buffer,0,$buffer.Length)}; $fs.Flush();$fs.Close();$sw.Stop(); $writeSpeed=[math]::Round($testSizeMB/$sw.Elapsed.TotalSeconds,1); Write-Host ('    Write Speed : {0} MB/s' -f $writeSpeed) -F Green}catch{Write-Host ('    Write failed: '+$_) -F Red; if(Test-Path $testFile){Remove-Item $testFile -Force}; exit}; Write-Host ''; Write-Host '  READ TEST (sequential)...' -F Yellow; $readSpeed=0; $rb=New-Object byte[](1MB); $sw=[System.Diagnostics.Stopwatch]::StartNew(); try{$fs=[System.IO.File]::OpenRead($testFile); while($fs.Read($rb,0,$rb.Length) -gt 0){}; $fs.Close();$sw.Stop(); $readSpeed=[math]::Round($testSizeMB/$sw.Elapsed.TotalSeconds,1); Write-Host ('    Read Speed  : {0} MB/s' -f $readSpeed) -F Green}catch{Write-Host ('    Read failed : '+$_) -F Red}; if(Test-Path $testFile){Remove-Item $testFile -Force -EA SilentlyContinue}; Write-Host ''; Write-Host '  =============================================' -F Cyan; Write-Host ('   Write : {0} MB/s    Read : {1} MB/s' -f $writeSpeed,$readSpeed) -F White; $rating=if($readSpeed -gt 1500){'***** NVMe SSD (Excellent)'}elseif($readSpeed -gt 300){'****  SATA SSD (Very Good)'}elseif($readSpeed -gt 100){'***   HDD 7200rpm (Average)'}else{'**    Slow - HDD 5400rpm or aging drive'}; $rc=if($readSpeed -gt 300){'Green'}elseif($readSpeed -gt 100){'Yellow'}else{'Red'}; Write-Host ('   Rating: {0}' -f $rating) -F $rc; Write-Host '  =============================================' -F Cyan"
+
+echo.
+goto PAUSE_RETURN
+
+
+:: ================================================================
+::  14. ADVANCED RECOVERY TOOLS
+:: ================================================================
+:ADV_RECOVERY
+cls
+echo.
+echo  =============================================================
+echo   ADVANCED RECOVERY TOOLS
+echo  =============================================================
+echo.
+echo  -- THIRD-PARTY FREE RECOVERY TOOLS --
+echo.
+echo   1.  TestDisk  -- Partition ^& boot record repair
+echo   2.  PhotoRec  -- Recover deleted photos ^& files
+echo   3.  Recuva    -- File recovery (Piriform, free)
+echo.
+echo  -- WINDOWS BUILT-IN REPAIR --
+echo.
+echo   4.  SFC     -- System File Checker
+echo   5.  DISM    -- Repair Windows Image
+echo   6.  Fix Boot Record  (bootrec)
 echo.
 echo   0.  Back to Main Menu
 echo.
+set /p AROPT=  Enter option (0-6):
+if "%AROPT%"=="1" goto AR_TESTDISK
+if "%AROPT%"=="2" goto AR_PHOTOREC
+if "%AROPT%"=="3" goto AR_RECUVA
+if "%AROPT%"=="4" goto AR_SFC
+if "%AROPT%"=="5" goto AR_DISM
+if "%AROPT%"=="6" goto AR_BOOTREC
+if "%AROPT%"=="0" goto MAIN_MENU
+echo  Invalid option.
+goto ADV_RECOVERY
+
+:AR_TESTDISK
+cls
+echo.
+echo  =============================================================
+echo   TESTDISK -- Partition ^& Boot Repair
 echo  =============================================================
 echo.
-set /p RSUB=  Enter option (0-9):
+if exist "%ProgramFiles%\TestDisk	estdisk_win.exe" ( start "" "%ProgramFiles%\TestDisk	estdisk_win.exe" & goto PAUSE_RETURN )
+if exist "%ProgramFiles(x86)%\TestDisk	estdisk_win.exe" ( start "" "%ProgramFiles(x86)%\TestDisk	estdisk_win.exe" & goto PAUSE_RETURN )
+if exist "C:\HDD-MasterTool-Tools\TestDisk	estdisk_win.exe" ( start "" "C:\HDD-MasterTool-Tools\TestDisk	estdisk_win.exe" & goto PAUSE_RETURN )
+echo  [!] TestDisk not installed.
+set /p AR_TD=  Download TestDisk portable now? (Y/N):
+if /i "%AR_TD%"=="Y" (
+    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
+    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; $base='C:\HDD-MasterTool-Tools'; $zip=$base+'\testdisk.zip'; try{Invoke-WebRequest -Uri 'https://www.cgsecurity.org/testdisk-7.2-WIP.win.zip' -OutFile $zip -UseBasicParsing; Expand-Archive -Path $zip -DestinationPath $base -Force; $e=Get-ChildItem -Path $base -Recurse -Filter 'testdisk_win.exe'|Select-Object -First 1; if($e){Write-Host ('[OK] '+$e.FullName) -F Green; Start-Process $e.FullName}else{Write-Host '[!] Not found in archive.' -F Red}; Remove-Item $zip -Force -EA SilentlyContinue}catch{Write-Host ('[!] Download failed: '+$_) -F Red; Write-Host '[i] Manual: https://www.cgsecurity.org/wiki/TestDisk_Download' -F DarkGray}"
+) else (
+    echo  [i] Manual: https://www.cgsecurity.org/wiki/TestDisk_Download
+)
+goto PAUSE_RETURN
 
-if "%RSUB%"=="1" goto DR_SFC
-if "%RSUB%"=="2" goto DR_DISM
-if "%RSUB%"=="3" goto DR_CHKDSK
-if "%RSUB%"=="4" goto DR_BOOTREC
-if "%RSUB%"=="5" goto DR_SHADOW
-if "%RSUB%"=="6" goto DR_RECUVA
-if "%RSUB%"=="7" goto DR_TESTDISK
-if "%RSUB%"=="8" goto DR_PHOTOREC
-if "%RSUB%"=="9" goto DR_MINITOOL
-if "%RSUB%"=="0" goto MAIN_MENU
-echo  Invalid option.
-timeout /t 1 /nobreak >nul
-goto DATA_RECOVERY
+:AR_PHOTOREC
+cls
+echo.
+echo  =============================================================
+echo   PHOTOREC -- Photo ^& File Recovery
+echo  =============================================================
+echo.
+if exist "%ProgramFiles%\TestDisk\photorec_win.exe" ( start "" "%ProgramFiles%\TestDisk\photorec_win.exe" & goto PAUSE_RETURN )
+if exist "%ProgramFiles(x86)%\TestDisk\photorec_win.exe" ( start "" "%ProgramFiles(x86)%\TestDisk\photorec_win.exe" & goto PAUSE_RETURN )
+if exist "C:\HDD-MasterTool-Tools\TestDisk\photorec_win.exe" ( start "" "C:\HDD-MasterTool-Tools\TestDisk\photorec_win.exe" & goto PAUSE_RETURN )
+echo  [!] PhotoRec not found (bundled with TestDisk).
+set /p AR_PR=  Download TestDisk+PhotoRec now? (Y/N):
+if /i "%AR_PR%"=="Y" (
+    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
+    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; $base='C:\HDD-MasterTool-Tools'; $zip=$base+'\testdisk.zip'; try{Invoke-WebRequest -Uri 'https://www.cgsecurity.org/testdisk-7.2-WIP.win.zip' -OutFile $zip -UseBasicParsing; Expand-Archive -Path $zip -DestinationPath $base -Force; $e=Get-ChildItem -Path $base -Recurse -Filter 'photorec_win.exe'|Select-Object -First 1; if($e){Write-Host ('[OK] '+$e.FullName) -F Green; Start-Process $e.FullName}else{Write-Host '[!] Not found in archive.' -F Red}; Remove-Item $zip -Force -EA SilentlyContinue}catch{Write-Host ('[!] Download failed: '+$_) -F Red}"
+) else (
+    echo  [i] Manual: https://www.cgsecurity.org/wiki/PhotoRec
+)
+goto PAUSE_RETURN
 
+:AR_RECUVA
+cls
+echo.
+echo  =============================================================
+echo   RECUVA -- File Recovery Tool
+echo  =============================================================
+echo.
+if exist "%ProgramFiles%\Recuva\Recuva.exe" ( start "" "%ProgramFiles%\Recuva\Recuva.exe" & goto PAUSE_RETURN )
+if exist "%ProgramFiles(x86)%\Recuva\Recuva.exe" ( start "" "%ProgramFiles(x86)%\Recuva\Recuva.exe" & goto PAUSE_RETURN )
+echo  [!] Recuva not installed.
+set /p AR_RV=  Download Recuva installer now? (Y/N):
+if /i "%AR_RV%"=="Y" (
+    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
+    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; try{Invoke-WebRequest -Uri 'https://download.ccleaner.com/rcsetup156.exe' -OutFile 'C:\HDD-MasterTool-Tools\rcsetup.exe' -UseBasicParsing; Write-Host '[OK] Saved to C:\HDD-MasterTool-Tools\rcsetup.exe' -F Green; Start-Process 'C:\HDD-MasterTool-Tools\rcsetup.exe'}catch{Write-Host ('[!] Download failed: '+$_) -F Red}"
+) else (
+    echo  [i] Manual: https://www.ccleaner.com/recuva/download
+)
+goto PAUSE_RETURN
 
-:DR_SFC
+:AR_SFC
 cls
 echo.
 echo  =============================================================
@@ -960,93 +1016,45 @@ echo.
 sfc /scannow
 goto PAUSE_RETURN
 
-
-:DR_DISM
+:AR_DISM
 cls
 echo.
 echo  =============================================================
 echo   DISM -- Repair Windows Image
 echo  =============================================================
 echo.
-echo  [*] Step 1: Checking Windows image health...
-echo  Command: DISM /Online /Cleanup-Image /CheckHealth
-echo.
+echo  [*] Step 1: Checking health...
 DISM /Online /Cleanup-Image /CheckHealth
 echo.
-echo  [*] Step 2: Scanning Windows image...
-echo  Command: DISM /Online /Cleanup-Image /ScanHealth
-echo.
+echo  [*] Step 2: Scanning health...
 DISM /Online /Cleanup-Image /ScanHealth
 echo.
-echo  [*] Step 3: Restoring Windows image health...
-echo  Command: DISM /Online /Cleanup-Image /RestoreHealth
-echo.
+echo  [*] Step 3: Restoring health...
 DISM /Online /Cleanup-Image /RestoreHealth
 goto PAUSE_RETURN
 
-
-:DR_CHKDSK
-cls
-echo.
-echo  =============================================================
-echo   CHKDSK -- Scan and Fix Drive Errors
-echo  =============================================================
-echo.
-set /p CHKDRV=  Enter drive letter to scan (e.g. C or D):
-if "%CHKDRV%"=="" (
-    echo  [!] No drive letter entered.
-    goto PAUSE_RETURN
-)
-echo.
-echo  [*] Running CHKDSK on drive %CHKDRV%: ...
-echo  [*] If drive is in use, it will schedule for next reboot.
-echo  Command: chkdsk %CHKDRV%: /f /r /x
-echo.
-chkdsk %CHKDRV%: /f /r /x
-goto PAUSE_RETURN
-
-
-:DR_BOOTREC
+:AR_BOOTREC
 cls
 echo.
 echo  =============================================================
 echo   FIX BOOT RECORD (bootrec)
 echo  =============================================================
 echo.
-echo  [!] WARNING: This modifies the Master Boot Record.
-echo  [!] Only use if Windows fails to boot normally.
+echo  [!] WARNING: Modifies the Master Boot Record.
+echo  [!] Only use if Windows fails to boot.
 echo.
 echo   A.  Fix MBR only          (bootrec /fixmbr)
-echo   B.  Fix Boot Sector only   (bootrec /fixboot)
-echo   C.  Rebuild BCD            (bootrec /rebuildbcd)
-echo   D.  Run ALL three          (Recommended for boot failure)
+echo   B.  Fix Boot Sector       (bootrec /fixboot)
+echo   C.  Rebuild BCD           (bootrec /rebuildbcd)
+echo   D.  Run ALL three         (Recommended for boot failure)
 echo.
 set /p BOPT=  Choose A / B / C / D:
-
-if /i "%BOPT%"=="A" (
-    echo  [*] Fixing MBR...
-    bootrec /fixmbr
-    goto PAUSE_RETURN
-)
-if /i "%BOPT%"=="B" (
-    echo  [*] Fixing Boot Sector...
-    bootrec /fixboot
-    goto PAUSE_RETURN
-)
-if /i "%BOPT%"=="C" (
-    echo  [*] Rebuilding BCD...
-    bootrec /rebuildbcd
-    goto PAUSE_RETURN
-)
+if /i "%BOPT%"=="A" ( bootrec /fixmbr & goto PAUSE_RETURN )
+if /i "%BOPT%"=="B" ( bootrec /fixboot & goto PAUSE_RETURN )
+if /i "%BOPT%"=="C" ( bootrec /rebuildbcd & goto PAUSE_RETURN )
 if /i "%BOPT%"=="D" (
-    echo.
-    echo  [*] Fixing MBR...
     bootrec /fixmbr
-    echo.
-    echo  [*] Fixing Boot Sector...
     bootrec /fixboot
-    echo.
-    echo  [*] Rebuilding BCD...
     bootrec /rebuildbcd
     goto PAUSE_RETURN
 )
@@ -1054,249 +1062,25 @@ echo  Invalid option.
 goto PAUSE_RETURN
 
 
-:DR_SHADOW
-cls
-echo.
-echo  =============================================================
-echo   SHADOW COPY -- Previous Versions
-echo  =============================================================
-echo.
-echo  [*] Listing all Shadow Copies on this system...
-echo  Command: vssadmin list shadows
-echo.
-vssadmin list shadows
-echo.
-echo  [i] To restore files from Previous Versions:
-echo  [i]  1. Right-click any folder in Explorer
-echo  [i]  2. Select Properties -^> Previous Versions tab
-echo  [i]  3. Choose a restore point and click Restore
-goto PAUSE_RETURN
-
-
-:DR_RECUVA
-cls
-echo.
-echo  =============================================================
-echo   RECUVA -- File Recovery Tool
-echo  =============================================================
-echo.
-if exist "%ProgramFiles%\Recuva\Recuva.exe" (
-    echo  [OK] Recuva found. Launching...
-    start "" "%ProgramFiles%\Recuva\Recuva.exe"
-    goto PAUSE_RETURN
-)
-if exist "%ProgramFiles(x86)%\Recuva\Recuva.exe" (
-    echo  [OK] Recuva found. Launching...
-    start "" "%ProgramFiles(x86)%\Recuva\Recuva.exe"
-    goto PAUSE_RETURN
-)
-echo  [!] Recuva is not installed.
-echo.
-set /p DR6_DL=  Download Recuva installer now? (Y/N):
-if /i "%DR6_DL%"=="Y" (
-    echo  [*] Downloading Recuva...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; try { Invoke-WebRequest -Uri 'https://download.ccleaner.com/rcsetup156.exe' -OutFile 'C:\HDD-MasterTool-Tools\rcsetup.exe' -UseBasicParsing; Write-Host '  [OK] Saved to C:\HDD-MasterTool-Tools\rcsetup.exe' -ForegroundColor Green; Start-Process 'C:\HDD-MasterTool-Tools\rcsetup.exe' } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://www.ccleaner.com/recuva/download' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://www.ccleaner.com/recuva/download
-)
-goto PAUSE_RETURN
-
-
-:DR_TESTDISK
-cls
-echo.
-echo  =============================================================
-echo   TESTDISK -- Partition and Boot Repair
-echo  =============================================================
-echo.
-if exist "%ProgramFiles%\TestDisk\testdisk_win.exe" (
-    echo  [OK] TestDisk found. Launching...
-    start "" "%ProgramFiles%\TestDisk\testdisk_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "%ProgramFiles(x86)%\TestDisk\testdisk_win.exe" (
-    echo  [OK] TestDisk found. Launching...
-    start "" "%ProgramFiles(x86)%\TestDisk\testdisk_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "C:\Tools\TestDisk\testdisk_win.exe" (
-    echo  [OK] TestDisk found. Launching...
-    start "" "C:\Tools\TestDisk\testdisk_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "C:\HDD-MasterTool-Tools\testdisk_win.exe" (
-    echo  [OK] TestDisk found. Launching...
-    start "" "C:\HDD-MasterTool-Tools\testdisk_win.exe"
-    goto PAUSE_RETURN
-)
-echo  [!] TestDisk is not installed.
-echo.
-set /p DR7_DL=  Download TestDisk portable ZIP now? (Y/N):
-if /i "%DR7_DL%"=="Y" (
-    echo  [*] Downloading and extracting TestDisk portable...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; $baseDir='C:\HDD-MasterTool-Tools'; $zip=$baseDir+'\testdisk.zip'; try { Invoke-WebRequest -Uri 'https://www.cgsecurity.org/testdisk-7.2-WIP.win.zip' -OutFile $zip -UseBasicParsing; Write-Host '  [*] Extracting...' -ForegroundColor Cyan; Expand-Archive -Path $zip -DestinationPath $baseDir -Force; $exe = Get-ChildItem -Path $baseDir -Recurse -Filter 'testdisk_win.exe' | Select-Object -First 1; if ($exe) { Write-Host ('  [OK] Ready: ' + $exe.FullName) -ForegroundColor Green; Start-Process $exe.FullName } else { Write-Host '  [!] exe not found in archive.' -ForegroundColor Red }; Remove-Item $zip -Force -ErrorAction SilentlyContinue } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://www.cgsecurity.org/wiki/TestDisk_Download' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://www.cgsecurity.org/wiki/TestDisk_Download
-)
-goto PAUSE_RETURN
-
-
-:DR_PHOTOREC
-cls
-echo.
-echo  =============================================================
-echo   PHOTOREC -- Photo and File Recovery
-echo  =============================================================
-echo.
-if exist "%ProgramFiles%\TestDisk\photorec_win.exe" (
-    echo  [OK] PhotoRec found. Launching...
-    start "" "%ProgramFiles%\TestDisk\photorec_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "%ProgramFiles(x86)%\TestDisk\photorec_win.exe" (
-    echo  [OK] PhotoRec found. Launching...
-    start "" "%ProgramFiles(x86)%\TestDisk\photorec_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "C:\Tools\TestDisk\photorec_win.exe" (
-    echo  [OK] PhotoRec found. Launching...
-    start "" "C:\Tools\TestDisk\photorec_win.exe"
-    goto PAUSE_RETURN
-)
-if exist "C:\HDD-MasterTool-Tools\photorec_win.exe" (
-    echo  [OK] PhotoRec found. Launching...
-    start "" "C:\HDD-MasterTool-Tools\photorec_win.exe"
-    goto PAUSE_RETURN
-)
-echo  [!] PhotoRec not found. (Bundled with TestDisk)
-echo.
-set /p DR8_DL=  Download TestDisk+PhotoRec portable ZIP now? (Y/N):
-if /i "%DR8_DL%"=="Y" (
-    echo  [*] Downloading and extracting TestDisk+PhotoRec portable...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; $baseDir='C:\HDD-MasterTool-Tools'; $zip=$baseDir+'\testdisk.zip'; try { Invoke-WebRequest -Uri 'https://www.cgsecurity.org/testdisk-7.2-WIP.win.zip' -OutFile $zip -UseBasicParsing; Write-Host '  [*] Extracting...' -ForegroundColor Cyan; Expand-Archive -Path $zip -DestinationPath $baseDir -Force; $exe = Get-ChildItem -Path $baseDir -Recurse -Filter 'photorec_win.exe' | Select-Object -First 1; if ($exe) { Write-Host ('  [OK] Ready: ' + $exe.FullName) -ForegroundColor Green; Start-Process $exe.FullName } else { Write-Host '  [!] photorec_win.exe not found in archive.' -ForegroundColor Red }; Remove-Item $zip -Force -ErrorAction SilentlyContinue } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://www.cgsecurity.org/wiki/PhotoRec' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://www.cgsecurity.org/wiki/PhotoRec
-)
-goto PAUSE_RETURN
-
-
-:DR_MINITOOL
-cls
-echo.
-echo  =============================================================
-echo   MINITOOL POWER DATA RECOVERY
-echo  =============================================================
-echo.
-if exist "%ProgramFiles%\MiniTool Power Data Recovery\PowerDataRecovery.exe" (
-    echo  [OK] MiniTool found. Launching...
-    start "" "%ProgramFiles%\MiniTool Power Data Recovery\PowerDataRecovery.exe"
-    goto PAUSE_RETURN
-)
-if exist "%ProgramFiles(x86)%\MiniTool Power Data Recovery\PowerDataRecovery.exe" (
-    echo  [OK] MiniTool found. Launching...
-    start "" "%ProgramFiles(x86)%\MiniTool Power Data Recovery\PowerDataRecovery.exe"
-    goto PAUSE_RETURN
-)
-echo  [!] MiniTool Power Data Recovery is not installed.
-echo.
-set /p DR9_DL=  Download MiniTool Free installer now? (Y/N):
-if /i "%DR9_DL%"=="Y" (
-    echo  [*] Downloading MiniTool Power Data Recovery Free...
-    if not exist "C:\HDD-MasterTool-Tools" mkdir "C:\HDD-MasterTool-Tools"
-    powershell -nologo -noprofile -command "$ProgressPreference='SilentlyContinue'; try { Invoke-WebRequest -Uri 'https://download.minitool.com/pdr_free/minitool-power-data-recovery-free.exe' -OutFile 'C:\HDD-MasterTool-Tools\minitool-pdr-free.exe' -UseBasicParsing; Write-Host '  [OK] Saved to C:\HDD-MasterTool-Tools\minitool-pdr-free.exe' -ForegroundColor Green; Start-Process 'C:\HDD-MasterTool-Tools\minitool-pdr-free.exe' } catch { Write-Host ('  [!] Download failed: ' + $_) -ForegroundColor Red; Write-Host '  [i] Manual: https://www.minitool.com/data-recovery-software/free-for-windows.html' -ForegroundColor DarkGray }"
-) else (
-    echo  [i] Skipped. Manual: https://www.minitool.com/data-recovery-software/free-for-windows.html
-)
-goto PAUSE_RETURN
-
-
 :: ================================================================
-::  14. SMART HISTORY LOGGER
+::  15. REPORTS & LOGS
 :: ================================================================
-:SMART_LOGGER
+:REPORTS_LOGS
 cls
 echo.
 echo  =============================================================
-echo   SMART HISTORY LOGGER -- Drive Health Trend
+echo   REPORTS ^& LOGS -- Export Drive Report
 echo  =============================================================
 echo.
-echo  [*] Logging SMART data for all physical drives...
-echo  [*] Results saved to C:\HDD-MasterTool-Logs\SMART-History.csv
+echo  [*] Generating full drive report...
+echo  [*] This will be saved to your Desktop.
 echo.
-powershell -nologo -noprofile -command "$logDir='C:\HDD-MasterTool-Logs'; $logFile=$logDir+'\SMART-History.csv'; $stamp=Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; if(-not(Test-Path $logDir)){New-Item -ItemType Directory -Path $logDir -Force|Out-Null; Write-Host '  [*] Log folder created.' -F Cyan}; if(-not(Test-Path $logFile)){'Timestamp,DiskNum,Model,MediaType,HealthStatus,Temp_C,ReadErrors,WriteErrors,PowerOnHours,Wear_Pct'|Out-File $logFile -Encoding UTF8}; $prev=@{}; try{foreach($e in (Import-Csv $logFile -EA SilentlyContinue)){$prev[$e.DiskNum]=$e}}catch{}; $warn=$false; $disks=Get-PhysicalDisk -EA SilentlyContinue; if(-not $disks){Write-Host '  [!] No physical disks detected.' -F Red; exit}; foreach($d in $disks){$n=$d.DeviceId; $m=$d.FriendlyName; $mt=$d.MediaType; $h=$d.HealthStatus; $r=Get-StorageReliabilityCounter -PhysicalDisk $d -EA SilentlyContinue; $t=if($r -and $null -ne $r.Temperature){$r.Temperature}else{'N/A'}; $re=if($r -and $null -ne $r.ReadErrorsTotal){$r.ReadErrorsTotal}else{0}; $we=if($r -and $null -ne $r.WriteErrorsTotal){$r.WriteErrorsTotal}else{0}; $hr=if($r -and $null -ne $r.PowerOnHours){$r.PowerOnHours}else{'N/A'}; $wr=if($r -and $null -ne $r.Wear){$r.Wear}else{'N/A'}; `"$stamp,$n,\`"$m\`",$mt,$h,$t,$re,$we,$hr,$wr`"|Out-File $logFile -Encoding UTF8 -Append; Write-Host '  -----------------------------------------------' -F DarkGray; Write-Host `"  Disk $n -- $m [$mt]`" -F White; $hc=switch($h){'Healthy'{'Green'}'Warning'{'Yellow'}'Unhealthy'{'Red'}default{'Gray'}}; Write-Host `"  Health   : $h`" -F $hc; if($t -ne 'N/A'){$tc=if([int]$t -ge 55){'Red'}elseif([int]$t -ge 45){'Yellow'}else{'Green'}; Write-Host `"  Temp     : ${t}C`" -F $tc; if([int]$t -ge 55){Write-Host '  [!!] CRITICAL TEMP!' -F Red; $warn=$true}}; $ec=if(($re -gt 0)-or($we -gt 0)){'Yellow'}else{'Green'}; Write-Host `"  Errors   : Read=$re  Write=$we`" -F $ec; if($hr -ne 'N/A'){Write-Host `"  PowerOn  : $hr hours`" -F DarkGray}; if($wr -ne 'N/A'){$wc=if([int]$wr -ge 80){'Red'}elseif([int]$wr -ge 60){'Yellow'}else{'Green'}; Write-Host `"  SSD Wear : ${wr}%%`" -F $wc; if([int]$wr -ge 80){Write-Host '  [!!] SSD WEAR CRITICAL!' -F Red; $warn=$true}}; if($prev.ContainsKey($n)){$pv=$prev[$n]; Write-Host `"  Trend vs: $($pv.Timestamp)`" -F DarkGray; $ch=$false; if($pv.HealthStatus -ne $h){Write-Host `"  [!!] HEALTH: $($pv.HealthStatus) -> $h`" -F Red; $warn=$true; $ch=$true}; if($pv.ReadErrors -match '^\d+' -and [long]$re -gt [long]$pv.ReadErrors){Write-Host `"  [!!] READ ERRORS UP: $($pv.ReadErrors) -> $re`" -F Red; $warn=$true; $ch=$true}; if(-not $ch){Write-Host '  [OK] No degradation.' -F Green}}else{Write-Host '  [i] First scan -- baseline recorded.' -F DarkGray}; Write-Host ''}; if($warn){Write-Host '  [!!] DEGRADATION DETECTED -- Use Option 16 immediately!' -F Red}else{Write-Host '  [OK] All drives healthy -- no changes.' -F Green}; Write-Host `"  Log: $logFile`" -F Cyan"
+
+powershell -nologo -noprofile -command ^
+"$ts=Get-Date -Format 'yyyyMMdd_HHmmss'; $f="$env:USERPROFILE\Desktop\HDD-Report_$ts.txt"; $r=[System.Collections.Generic.List[string]]::new(); $r.Add('='*65); $r.Add('  HDD MASTER TOOL -- Drive Report'); $r.Add('  Generated : '+(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')); $r.Add('  Computer  : '+$env:COMPUTERNAME+'   User: '+$env:USERNAME); $r.Add('='*65); $r.Add(''); $r.Add('-- DRIVE OVERVIEW --'); try{Get-Volume -EA SilentlyContinue|Where-Object{$_.DriveLetter -and $_.DriveType -eq 'Fixed'}|Sort-Object DriveLetter|ForEach-Object{$u=$_.Size-$_.SizeRemaining; $p=if($_.Size -gt 0){[math]::Round($u/$_.Size*100,1)}else{0}; $r.Add('  '+$_.DriveLetter+':\  Total: '+[math]::Round($_.Size/1GB,1)+'GB  Used: '+[math]::Round($u/1GB,1)+'GB ('+$p+'%)  Free: '+[math]::Round($_.SizeRemaining/1GB,1)+'GB  FS: '+$_.FileSystem)}}catch{$r.Add('  [ERROR] '+$_.Exception.Message)}; $r.Add(''); $r.Add('-- SMART HEALTH --'); try{Get-PhysicalDisk -EA SilentlyContinue|ForEach-Object{$r.Add('  '+$_.FriendlyName+' | '+[math]::Round($_.Size/1GB,1)+'GB | '+$_.MediaType+' | '+$_.BusType+' | Health: '+$_.HealthStatus)}}catch{$r.Add('  [ERROR]')}; $r.Add(''); $r.Add('-- PARTITIONS --'); try{Get-Disk -EA SilentlyContinue|Sort-Object Number|ForEach-Object{$d=$_; $r.Add('  Disk '+$d.Number+': '+$d.FriendlyName+' '+[math]::Round($d.Size/1GB,1)+'GB ['+$d.BusType+']'); Get-Partition -DiskNumber $d.Number -EA SilentlyContinue|ForEach-Object{$l=if($_.DriveLetter){$_.DriveLetter+':'}else{'(no letter)'}; $r.Add('    Part '+$_.PartitionNumber+': '+$l+' '+[math]::Round($_.Size/1GB,2)+'GB ['+$_.Type+']')}}}catch{$r.Add('  [ERROR]')}; $r.Add(''); $r.Add('-- VOLUME SHADOW COPIES --'); try{$v=vssadmin list shadows 2>&1; $v|ForEach-Object{$r.Add('  '+$_)}}catch{$r.Add('  [ERROR]')}; $r.Add(''); $r.Add('-- TOP 10 LARGEST FILES (C:\) --'); try{Get-ChildItem -Path 'C:\' -Recurse -File -Force -EA SilentlyContinue|Sort-Object Length -Descending|Select-Object -First 10|ForEach-Object{$sz=if($_.Length -ge 1GB){[math]::Round($_.Length/1GB,2)+'GB'}else{[math]::Round($_.Length/1MB,1)+'MB'}; $r.Add('  '+$sz+'  '+$_.FullName)}}catch{$r.Add('  [ERROR]')}; $r.Add(''); $r.Add('-- DISK EVENT ERRORS (last 7 days) --'); try{$since=(Get-Date).AddDays(-7); $ev=Get-WinEvent -FilterHashtable @{LogName='System';StartTime=$since;Level=1,2} -EA SilentlyContinue|Where-Object{$_.ProviderName -match 'disk|atapi|nvme|storhport|iaStorA'}|Select-Object -First 10; if($ev){$ev|ForEach-Object{$r.Add('  '+$_.TimeCreated.ToString('yyyy-MM-dd HH:mm')+' ['+$_.ProviderName+'] ID:'+$_.Id+' '+$_.Message.Split([char]10)[0])}}else{$r.Add('  No disk errors in the last 7 days.')}}catch{$r.Add('  [ERROR]')}; $r.Add(''); $r.Add('='*65); $r.Add('  END -- HDD Master Tool by JahirCyberDesk'); $r.Add('  YouTube: https://youtube.com/@jahircyberdesk'); $r.Add('='*65); $r|Out-File -FilePath $f -Encoding UTF8; Write-Host ('  Report saved to Desktop:') -F Green; Write-Host ('  '+$f) -F White; Write-Host ''; $o=Read-Host '  Open in Notepad? (Y/N)'; if($o -in @('Y','y')){Start-Process notepad.exe $f}"
+
+echo.
 goto PAUSE_RETURN
-
-
-:: ================================================================
-::  15. BACKUP STATUS AUDIT
-:: ================================================================
-:BACKUP_AUDIT
-cls
-echo.
-echo  =============================================================
-echo   BACKUP STATUS AUDIT -- 3-2-1 Check
-echo  =============================================================
-echo.
-echo  [*] Checking Windows Backup status...
-echo.
-echo  -- Windows Backup (wbadmin) --
-echo.
-wbadmin get versions 2>&1 | findstr /i "backup time"
-if %errorlevel% neq 0 (
-    echo  [!] No Windows Backup versions found.
-    echo      Go to Control Panel -^> Backup and Restore to configure.
-) else (
-    echo  [i] See above for last backup timestamp.
-)
-echo.
-echo  -- Volume Shadow Copies (VSS) --
-echo.
-vssadmin list shadows 2>&1 | findstr /i "creation time"
-if %errorlevel% neq 0 (
-    echo  [!] No shadow copies found.
-    echo  [!] Consider enabling VSS on your critical volumes.
-) else (
-    echo  [OK] Shadow copies exist -- see latest timestamp above.
-)
-echo.
-echo  -- Recent Disk Errors (last 7 days) --
-echo.
-powershell -nologo -noprofile -command "$since=(Get-Date).AddDays(-7); $ev=Get-WinEvent -FilterHashtable @{LogName='System';StartTime=$since;Level=1,2} -EA SilentlyContinue|Where-Object{$_.ProviderName -match 'disk|atapi|nvme|storhport'}|Select-Object -First 5; if($ev){Write-Host '  [!] Disk errors found in last 7 days:' -F Yellow; $ev|ForEach-Object{Write-Host `"  $($_.TimeCreated.ToString('yyyy-MM-dd HH:mm'))  [$($_.ProviderName)]  ID:$($_.Id)`" -F Yellow}}else{Write-Host '  [OK] No disk errors in the last 7 days.' -F Green}"
-echo.
-echo  =============================================================
-echo   3-2-1 BACKUP RULE -- SELF-AUDIT
-echo  =============================================================
-echo.
-echo   [ ] 3 copies  -- original + local backup + offsite
-echo   [ ] 2 media   -- e.g. HDD + USB/NAS + cloud
-echo   [ ] 1 offsite -- OneDrive / Azure / remote site
-echo   [ ] Restore tested in the last 30 days?
-echo.
-echo  =============================================================
-echo.
-echo   A.  Open Backup and Restore (Control Panel)
-echo   B.  Open System Protection (Shadow Copy settings)
-echo   C.  Create backup now (go to Option 11 -- Disk Imaging)
-echo   0.  Back to Main Menu
-echo.
-set /p BAUD=  Choose A / B / C / 0:
-
-if /i "%BAUD%"=="A" (
-    control /name Microsoft.BackupAndRestore
-    goto PAUSE_RETURN
-)
-if /i "%BAUD%"=="B" (
-    start SystemPropertiesProtection.exe
-    goto PAUSE_RETURN
-)
-if /i "%BAUD%"=="C" goto DISK_IMAGING
-if     "%BAUD%"=="0" goto MAIN_MENU
-echo  Invalid option.
-goto PAUSE_RETURN
-
 
 :: ================================================================
 ::  16. EMERGENCY DRIVE TRIAGE
@@ -1331,7 +1115,7 @@ echo.
 echo  =============================================================
 echo.
 echo   1.  Check SMART status of all drives (Option 2)
-echo   2.  Start Emergency Image Backup (Option 11)
+echo   2.  Start Emergency Image Backup (Option 10)
 echo   3.  Show drive serial numbers and details
 echo   4.  View disk error events -- last 24 hours
 echo   5.  Download GNU ddrescue (best for failing drives)
@@ -1399,7 +1183,6 @@ echo.
 echo  [*] Opening ddrescue download in default browser...
 start "" "https://sourceforge.net/projects/ddrescue-for-windows/"
 goto PAUSE_RETURN
-
 
 :EXIT_TOOL
 cls
